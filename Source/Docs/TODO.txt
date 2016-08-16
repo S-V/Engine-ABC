@@ -1,0 +1,641 @@
+* post-processing effects: NPR (painting, scetch, etc.)
+* post-processing effect: glow.
+* sample apps: hierarchical culling (octree, KD-tree, AABB, ABT, etc.), many identical objects, use occlusion queries
+  demo CustomShaders: asphalt with a separate specular map.
+
+* bump mapping, horizon mapping, POM with self-shadowing
+  shadow-casting point and directional lights
+
+* Move material to a per-batch, not per-mesh attribute.
+
+* reduce code duplication in shaders (esp. in the code for post-processing)
+
+* select screen settings at start time from config files (i.e. screen res should not be hardcoded),
+ add collision detection (esp. to CSG demo)
+
+* lazy-evaluate everything in the renderer (e.g. don't init sky & post-processing system until they are really needed, etc.)
+
+* proper dynamic geometry management in D3D10 renderer
+
+* DONE: post-processing demo: Bloom & DoF, keys +/-
+
+* parallax mapping
+
+* polygon clipping as 'wrapping', like in RF1
+
+* DONE: EPlaneSide: PLANESIDE_FRONT = 0, etc.
+
+* DONE: rename AABB::mPoints to mPoints
+
+* DONE: MeshLoader should measure loading times, bytes of RAM used by geometry, etc.
+
+* DONE: make a StaticAssert()
+
+* DONE: make a method Matrix4::RotateVector() (the same as TransformNormal())
+
+* design a nice interface to csg system
+
+- remove "virtual Unbind()" because it's analogous to Apply()
+
+* some shadow maps (from the Sun, e.g.) don't need to be updated each frame
+
+* optimize local lights, don't reset depth/stencil, rasterizer and other states in each RenderLocalLight(),
+because it hurts early-Z, sort lights, use SpatialDatabase::GetEntitiesInPoint() to get lights enclosing the camera,
+use hashmap (MAX_NUM_LIGHTS = 512, for example) to get visible lights, not containing the eye, etc...
+use instancing for drawing many small non-shadowing lights;
+try deferred shadowing (render all shadows into screen-sized buffer to apply them later, as a post-process,
+ in order to minimize depth-stencil state switches), blur the shadow buffer (screen-space blurred soft shadows).
+
+* DONE: add CameraNode, debug spot lights (attach spotlight to the camera, ... )
+
+* Animator_LookAt::Animate
+
+* DONE: make a special class NodePtr - a reference-counting pointer.
+
+* DONE:in FillGBuffer.fx:
+
+  row_major float4x4   WorldViewProjection;
+  
+  is not needed, instead, use this:
+
+  output.positionW 	= mul( float4( input.position, 1 ), WorldTransform );  
+  output.positionH	= mul( float4( output.positionW, 1 ), ViewProjection );
+
+  i.e. only these matrices are really needed:
+  
+  WorldTransform
+  ViewProjection
+ 
+* texture coordinate transformation
+
+* OPTIMIZATION: separate geometry into vertex stream, use a Z pre-pass using only position components.
+
+* faster frustum-AABB testing
+
+* projective texturing + changing proj. tex. transforms and intensity
+
+* rxLight::SetColor / GetColor:
+  change FCOlor to colorRGBA ?
+
+* DONE: skyboxes
+* cubemap skyboxes
+* skyspheres/skydomes/...
+
+* OPTIMIZATION: render a big triangle instead of a fullscreen quad.
+
+* all resources (well, almost all) should be reference-counted (look at DXSDK).
+
+* DONE: all effects should contain only one technique with only one pass.
+
+* DONE: replace mxSystem::IsRunning() with bool bIsRunning because pure virtual function call happens just at the program exit.
+
+* visible set - dynamic array which doubles in size by default.
+
+* update TLinkedList ( i.e. swipe ) from new version of Irrlicht ( irr::list<T> )
+
+* meshes with multiple surfaces with materials (rxModel::Surfaces currently is not used)
+
+* optimize Matrix4::BuildTransform()
+
+* DONE: pass specular exponent to shaders _correctly_
+
+* DONE: operator FColor * FColor
+
+* DONE: create functions Platform_Init() and Platform_Shutdown().
+
+* TODO: spec color for materials
+	FColor	specularColor;
+
+
+* Full screen mode.
+
+DXGI Warning: IDXGISwapChain::Present: Fullscreen presentation inefficiencies incurred due to application not using IDXGISwapChain::ResizeBuffers appropriately, specifying a DXGI_MODE_DESC not available in IDXGIOutput::GetDisplayModeList, or not using DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH. DXGI_SWAP_CHAIN_DESC::BufferDesc = { 1024, 768, { 60, 1 }, R8G8B8A8_UNORM, 0, 0 }; DXGI_SWAP_CHAIN_DESC::SampleDesc = { 1, 0 }; DXGI_SWAP_CHAIN_DESC::Flags = 0;
+D3DX10: (INFO) Using AMD optimizations
+DXGI Error: Swapchain Released while fullscreen. Switch it to the windowed state first.
+
+
+DXGI Warning: IDXGISwapChain::Present: Fullscreen presentation inefficiencies incurred due to application not using IDXGISwapChain::ResizeBuffers appropriately, specifying a DXGI_MODE_DESC not available in IDXGIOutput::GetDisplayModeList, or not using DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH. DXGI_SWAP_CHAIN_DESC::BufferDesc = { 1024, 768, { 60, 1 }, R8G8B8A8_UNORM, 0, 0 }; DXGI_SWAP_CHAIN_DESC::SampleDesc = { 1, 0 }; DXGI_SWAP_CHAIN_DESC::Flags = 0;
+D3DX10: (INFO) Using AMD optimizations
+DXGI Error: CDXGISwapChain::SetFullscreenState: Cannot set a target IDXGIOutput when requesting windowed mode.
+
+
+
+
+* use lazy evaluation strategy in DebugDrawers (don't allocate resources until they are needed)
+
+* DONE: refactor: rxDirectionalLight == rxParallelLight == rxInfiniteLight.
+
+* DONE: eliminate memory leaks in D3D9RenderSystem.
+
+* Matrix4::TransformPlane()
+
+* DONE: rename Vec3D::origin into Vec3D::vec3_origin
+		and Vec2D::origin into Vec2D::vec2_origin
+
+* DONE: make a ctor for Quat: Quat( angle, axis )
+* DONE: in Vec3D.h replace all fabs with mxMath::Fabs
+
+* DONE: rename screenClearColor -> backgroundColor
+* DONE: FORCEINLINE 'new' and 'delete' in Memory.h.
+
+
+
+* create vertex format like in D3D:
+
+  VertexElementsArray  elems [] = 
+  {
+    elem1, afa, af, faf,
+    elem1, afa, af, faf,
+    elem1, afa, af, faf,
+    elem1, afa, af, faf,
+  };
+
+ VertexFormat * newFormat = CreateVtxFormat( elems, NUM(elems) );
+
+
+* Optimize() all ID3D10Effect's
+
+* usage of the engine should look like this:
+
+ int main()
+ {
+ 
+ mxEngine * engine = CreateEngine( settings );
+ 
+ UserApp * pMyApp = new MyApp();
+ 
+ 
+ return 0;
+ }
+
+* TODO: use the stack allocator for temporary allocations (mesh creation, 'scratchpad', etc.)
+
+* DONE: remove csg code from Core.h
+
+
+* mxMeshBuilder should be a templated class (allocator - template parameter, stack allocator for small allocations),
+should be declared locally, it should not be global.
+
+* make sure that TArray checks for negative indices (e.g. index < 0 ) are optimized out in release builds
+(because TArray works with positive indices)
+
+template< class type >
+FORCEINLINE bool TArray<type>::RemoveIndex( mxUInt index ) {
+	mxUInt i;
+
+	Assert( list != NULL );
+	Assert( index >= 0 );
+	Assert( index < num );
+
+	if ( ( index < 0 ) || ( index >= num ) ) {
+		return false;
+	}
+
+	num--;
+	for( i = index; i < num; i++ ) {
+		list[ i ] = list[ i + 1 ];
+	}
+
+	return true;
+}
+
+
+
+
+* in render system, make a templated versions of array structures (lists of techniques, render passes, etc)
+to avoid code duplication, etc.
+
+* make everything in D3D9MaterialCompiler in one file,
+ use a table:
+  struct Token_s
+  {
+	int token_type;
+	const char* token_name;
+  }
+  
+  static const Token_s  g_tokTable[ NUM_TOKENS ] =
+  {
+	{ L_IDENTIFIER, "Identifier" },
+	
+	/* ... */
+
+
+
+* replace dynamics arrays in render queue with static ones (like in idTech3) ???
+fixed length of 2500 ??? 'and' high bits to prevent overflow ???
+
+* RTTI with templated type casts:
+
+//template< class T >
+//T * Cast( mxClass* obj );
+//
+//template< class T, class S >
+//T * CastChecked( S* src );
+
+
+* use static polymorphism to avoid calling virtual functions:
+ e.g.
+
+#ifdef __COMPILE_WITH_DIRECT3D_9_RENDERER_ONLY__
+	#include "D3D9RenderSystem.h"
+
+	typedef D3D9Renderer	mxRenderer;
+	typedef D3D9Resources	mxGraphicsResources;
+
+	// ...
+#endif
+
+
+* mesh buffers should be allocated from a special memory heap, to minimize fragmentation.
+
+* DONE: names of techniques and passes should be optional
+
+* DONE: rename geometry builder into mesh builder.
+
+* add line number information to error messages in material script parser/lexer.
+
+* TODO: move render queue into D3D9SceneRenderer;
+
+ D3D9SceneRenderer should be responcible for rendering,
+ not D3D9Renderer.
+
+* TODO: create a foreach macro (or a template) for almost all containers.
+
+* TODO: optimize the debug drawer, don't use DrawIndexedPrimitiveUPs,
+ batch them, modify dynamic buffers and render;
+ precache box mesh and render that meshes instead of 8 lines of the box
+ (use necessary transforms and materials).
+
+
+* TODO:
+  scene initialization order:
+  
+  scene.Add( mxEntity* )
+    inserts the entity into the entity database only;
+    then, after, scene->Build(), all other subsystems are constructed
+    (deferred initialization, deferred loading of resources - more opportunities for optimizations):
+    spatial database, render world, etc.
+
+  maybe, there'll be a function mxScene::SetBuiltOptions(...)
+  so that you can specify what optimizations to perform, spatial acceleration structures to employ, etc.
+
+
+
+* TODO: improve stability of the engine (it chokes on invalid or missing data).
+   (create a fallback texture; that texture may be re-used by the material system.)
+
+* TODO: create a special Scratchpad class for fast temporary memory allocations
+(or possible use stack-based methods).
+
+* TODO: add a simple templated Rectangle class (look at rect in Irrlicht).
+
+* TODO: proper calculation of video RAM.
+
+* TODO: make a convenient ctor for all description classes, e.g.
+	rxVertexBuffer * pVB = renderer.CreateVertexBuffer(
+		rxVertexBufferDesc( vertices, vertexFormat, numVerts, sizeOfVertex ) );
+
+* TODO: add "Transform graphs" (where transformations are propagated down to kids).
+
+* on the game engine:
+  break the source code further into namespaces 'system', 'io', 'video', 'sound', etc. ?
+
+
+* on the render command buffer:
+  separate the buffer into instructions and const data ?
+  instructions can be re-ordered, but data cannot be changed.
+
+
+* on the future compiler ( IDE ):
+  a special preprocessor directive, SKIP or something, for skipping the following contents of the current source file.
+
+* macros like MX_TODO, MX_HACK and so on should include timestamp.
+
+* on optimizing collision detection system:
+  Try to merge as many static collision objects together as possible
+  so that they don't pollute the broad phase.
+
+* in benchmark/profile/test/debug mode, record collisions when using hash tables
+ to check efficiency of the selected hash functions.
+
+* TFixedArray should contain a member variable 'm_numItems'.
+
+* make a separate folder called 'Sorting' containing sorting algorithms.
+Usage example:
+	TInsertionSort< pxContactInfo, MAX_NUM_CONTACT_POINTS >
+		sortArray( contacts.Ptr(), MAX_NUM_CONTACT_POINTS );
+
+* DONE: overload operator ^ for vector cross product.
+
+* when settign a material to an entity node,
+  update the corresponding physics object too ( change density => mass and inertia, etc. )
+
+
+* TODO: mxApplication can set the name of the main window ( the caption ), etc.
+
+* DONE: rename OBB to OOBB - object-oriented BB ( "OOBB" looks like "AABB" ).
+
+* DONE: create a method AABB::ToPlanes( mxPlane OutPlanes[6] ).
+
+* set penetration depth to zero when colliding with a plane,
+becase planes and halfspaces are different things.
+Also change (fDist < COLLISION_TOLERANCE)
+to Fabs(fDist) < COLLISION_TOLERANCE.
+
+
+* precompute relative velocity of contact points in the contact structure.
+
+* mxMeshBuilder emits geometry in supplied software buffers,
+which is passed to the mxHardwareMeshBufferManager ?
+
+* change pxReal to pxTime when it's used with deltaTime values.
+
+
+* treat intersections with a plane as intersections with a halfspace
+( rename classes properly ).
+
+* the idea with PhysicsEntity->DestroySelf( pxPhysics ) is BAD !!!
+think something new.
+
+
+* each platform will have a machine description file with opcodes, their costs, etc.
+ run-time generator will produce the most optimal code for the game based on that file.
+
+
+* create a library of dual quaternions in addition to the 'standard' idLib.
+
+
+* TODO: in physics module, initialize inertia tensors to inertia of a box.
+
+
+* explore dual quaternions ( they're used in Sauerbraten, shared/geom.h or common/geom.h )
+
+
+* mxMath:
+	MX_TODO( "replace macros with inline functions, read floating-point tricks in GPG 2 and 6, look at IceFPU.h" );
+
+
+* TODO: !!!!
+
+mxArray< typename type, class mxMemoryAllocator = mxDefaultAllocator >
+...
+
+mxMemoryAllocator< const mxUInt alignment = 16 > ...
+
+mxArray< typename type,
+		class mxMemoryAllocator = mxDefaultAllocator< 16 /* alignment */ >,
+		const mxUInt granularity = 16 >
+....
+
+
+* render the plane as an infinite grid.
+
+* create a templated boolean type and test different versions
+with 1-byte bools and 32-bit integers, ...
+
+typedef TBool<mxUint32>	mxBool;	// <= default boolean type.
+
+
+* In Havok, in hkpMotionState,
+  inverted inertia xyz and inverted mass w
+  are stored in a single 4-component vector:
+	hkVector4	m_inertiaAndMassInv;
+
+* use __restrict in polygon clipping routine used in CSG:
+
+void SplitPoly( const Poly& inPoly, const Plane& splitPlane,
+	RESTRICT Poly *OutFront, RESTRICT Poly *OutBack, RESTRICT Poly *OutCoplanar );
+
+* like in Havok ( HK_DECLARE_NONVIRTUAL_CLASS_ALLOCATOR( HK_MEMORY_CLASS_STRING, hkpString ) ),
+ use MX_DECLARE_POD_CLASS_ALLOCATOR( ... .
+
+
+* ON MY FUTURE COMPILER/IDE:
+  if changes are made to the source file, the compiler should be able to determine that the source file
+  may not need recompiling; or re-compile only those parts that have changed.
+
+* TODO:
+ALIGN_BY_CACHE_LINE  int[64][64],
+where the macro "Align by cache line size" is used...
+
+* out-of-order execution ( the trick with parentheses, (a*b) + (c*d) );
+check all expressions with float's and set parentheses manually.
+
+
+* typedef long double	mxFloat80;
+
+* move the 'Physics' folder up into the 'Src' folder (?) .
+
+* if any memory leaks are detected a message box should pop up.
+
+* string should be derived from an array of bytes ( which is templated, of course ).
+ And that array will allocate string data from a separate heap ( use allocation policy or something ).
+
+* each container should be able to use a custom memory allocator.
+
+* plane should be rendered as an infinite grid/infinite plane.
+
+* our own 'null' type.
+
+enum { null = 0 };
+
+
+* Don't redraw the scene if nothing has changed in the field of the camera's view.
+( If objects moved somewhere outside of the player's view, don't redraw the screen. )
+
+* !!!! TODO:
+   D3D9Mappings::ConvertStencilFunction()
+   instead
+   of
+   (D3DCMPFUNC) eFunc
+
+
+DONE:{
+* !!!! TODO: Matrix4::GetTranslation() // returns translation component.
+}
+
+* currently, only unbuffered keyboard input is implemented.
+
+* visibility code works incorrect with portals;
+  don't keep copies of entities in render world,
+  maintain the only database.
+
+* move rxMaterial into Renderer,
+pxPhysicalMaterial into Physics World,
+etc.
+
+//===========================================================================================
+
+!!! IMPORTANT !!!:
+  Detach a scene node from its parent before attaching it to another scene node !!!
+
+
+//===========================================================================================
+
+class MyEventHandler : public IInputEventHandler {
+public:
+  ....
+};
+
+class MyCameraNodeControllerFPS : public IManualNodeController {
+public:
+.....
+  override void OnEvent( const KeyboardEvent & event );
+  override void OnEvent( const MouseEvent & event );
+};
+
+//===========================================================================================
+
+reference-counted portals, just like any other entity ( scene node )
+
+//===========================================================================================
+
+	Template integer parameters
+
+If an integer value is a constant in the application code, but is a variable in library code, make it a template parameter.
+
+Let's assume you are writing the following library function, in which both x and y do not have a known value when the library is developed:
+int f1(int x, int y) { return x * y; }
+
+Such function may be called from the following application code, in which x does not have a constant value, but y is the constant 4:
+int a = f1(b, 4);
+
+If, when you write the library, you know that the caller will surely pass a constant for the argument y, you can transform your function into the following function template:
+template <int Y> int f2(int x) { return x * Y; }
+
+Such function may be called from the following application code:
+int a = f2<4>(b);
+
+Such a call instantiates automatically the following function:
+int f2(int x) { return x * 4; }
+
+The latter function is faster than the former function f1, for the following reasons:
+Only one argument is passed to the function (x) instead of two (x and y).
+The multiplication by an integer constant (4) is always faster than a multiplication by an integer variable (y).
+As the constant value (4) is a power of two, the compiler, instead of performing an integer multiplication, performs a bit shift.
+
+In general, the integer template parameters are constants for those who instantiate the template and therefore for the compiler, and constants are handled more efficiently than variables. In addition, some operations involving constants are pre-computed at compilation-time.
+
+If, instead of a normal function, you already have a function template, it is enough to add a further parameter to that template.
+
+ !!!!!!!!! make this with epsilons !!!!!
+
+//===========================================================================================
+
+* Kernel manages tasks:
+
+two lists: active tasks and suspended (paused);
+
+task scheduling;
+
+AddTask
+RemoveTask
+Resume/Suspend task
+TerminateAllTasks
+
+sort tasks by priority
+( transforms need to be recalculated before updating bounding volumes, etc. )
+
+Example:
+
+scene manager can switch ScenePresenters
+ between ActiveScenePresenter ( renders the scene every frame )
+ and OnIdleScenePresenter ( doesn't render the scene, has a list of taks to be performed
+  ( optimize the scene more during idle time, etc. ) )
+
+
+* statistics gathering, histograms:
+  
+  Threading model
+  Memory usage
+  CPU
+  GPU
+  
+  Event
+  Update
+  Cull
+  Draw
+
+
+* User interactions with the scene graph:
+  Manipulators (controllers), sensors (triggers), event handling.
+
+* DONE: cause a console window to pop up in debug builds.
+
+* TODO: use a separate memory pool for allocating scene graph nodes ( to avoid cache misses, minimize memory fragmentation, etc ).
+
+* The render world should not know anything about the scene graph.
+It should render visible sets cached in views.
+Visible sets don't need to be recomputed if their corresponding views haven't changed.
+
+* use scene graph validation, detect cyclic references.
+
+* TODO: add CHAR to typedefs.h; CHAR will depend on _UNICODE.
+
+Cull, Sort, Draw
+
+* TODO: 
+  in Debug.h, use platform-specific functions for errors, etc.,
+  extern void AppError( const char* format, ... ).
+
+* static Unimplemented feature, calling an unimplemented function will generate a compile-time error.
+
+* proceduraly generated clouds, trees & shrubs, terrains & caves & rocks, fluid meshes, buildings, explosions, fire, etc.
+
+* on a future compiler ( IDE ):
+   near bookmarks you can see the function/class/etc where this bookmark has been placed ( not only the file and linenumber ),
+   that would be more convenient.
+
+* Entity manager,
+  Create entity by name( const char* name ).
+
+* mxGraphicsResourceManager for creating textures, meshes, hardware buffers, etc.
+D3D9ResourceManager ...
+
+graphics API description with costs for each function ( with context info, too ).
+
+* create a framework for generating demos, invent a custom scripting engine ( C4 ),
+write scenes in that language, produce source code (C++) and shaders (or .fx files)
+and compile the resulting demo.
+We can generate entire games with such a powerful tool!
+We should use procedural content generation!
+
+* The text FALLBACK MATERIAL should be rendered sharply ( remember the article about road signs in Game Gems ).
+
+* allocate render entities from render world;
+  make their ctor/dtor protected, etc.
+
+* on his [ nullsquared's ] videos only rectangular portals are shown;
+we can make a spherical portal ( imagine a spherical mirror ).
+
+* Scene graph compiler ( scene -> into C++ code );
+  perform extensive analysis of the scene;
+  generate shaders unique to that scene;
+  don't generate code ( modules: renderer, physics, etc. ) that is not used;
+  may compile textures into C++ files so that no media files are needed;
+  ...
+  result - C++ file - source code for the demo,
+  the demo will be optimized as much as possible depending on the hardware,
+  application parameters, scene, etc.
+
+
+
+* Fallback material should be generated procedurally, including the text "Fallback material",
+  OR
+  they are compiled into a C/C++ file and linked into the executable.
+
+* Caches:
+From Wiki:
+	"Hash tables can be used to implement caches, auxiliary data tables that are used to speed up the access to data that is primarily stored in slower media. In this application, hash collisions can be handled by discarding one of the two colliding entries — usually the one that is currently stored in the table."
+
+* Self-balancing ( binary ) search trees:
+Similarly, many algorithms in computational geometry exploit variations on self-balancing BSTs to solve problems such as the line segment intersection problem and the point location problem efficiently.
+
+* input event queues ( esp. for keyboard, order of pressed keys is important ... )
+
+* memory optimizer, memory tracking, remapping and defragmentation
+
+* stereo rendering ( both methods:
+two views for each eye and two pics ( red & cyan, for use with glasses ).
+
+TODO: get rid of unneeded types!

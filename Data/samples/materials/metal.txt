@@ -1,0 +1,28 @@
+
+//
+//  metal
+//
+material metal
+{
+	diffuse_map	"textures/metal_plate.jpg"
+	normal_map	"textures/metal_plate.normals.jpg"
+	specular_intensity	0.5	// specular intensity
+	shininess	90.0	// specular power
+}
+
+material metal_tile
+{
+	diffuse_map	"textures/metal_tile.png"
+	normal_map	"textures/metal_tile.normals.png"
+	specular_intensity	0.5
+	shininess			60.0
+}
+
+
+material metal_panels
+{
+	diffuse_map	"textures/metal_panels.png"
+	normal_map	"textures/metal_panels.normals.png"
+	specular_intensity	1.2
+	shininess			120.0
+}

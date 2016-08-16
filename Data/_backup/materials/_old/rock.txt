@@ -1,0 +1,32 @@
+//
+//  rock
+//
+material rock
+{
+	technique
+	{
+		pass
+		{
+			lighting = true;
+			normalize_normals = true;
+			shading = Flat;
+			fill_mode = Solid;
+			
+			cull_mode = CCW;
+			depth_test = true;
+			depth_write = true;
+
+			ambient = white;
+			diffuse = white;
+			
+			texture_unit
+			{
+				texture = "rockwall.jpg";
+				Tex_Coord_Set = 0;
+				Filtering = Bilinear;
+				scale = 3, 3;
+			}
+			
+		}//end Pass
+	}//end Technique
+}//end Material

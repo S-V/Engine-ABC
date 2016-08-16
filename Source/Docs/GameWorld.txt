@@ -1,0 +1,17 @@
+* design idea:
+	Engine has a unique world,
+	world has several environments,
+	each environment contains one render world, one sound world, one physics world;
+	environments cannot overlap, but they can be viewed through portals.
+
+
+Units:
+
+  Physics units == Graphics units,
+  
+  my units are in meters,
+  
+  1 meter = 1 unit,
+
+  1 m = 1.0f
+  1 kg = 1.0f

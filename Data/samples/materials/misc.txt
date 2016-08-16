@@ -1,0 +1,27 @@
+
+//
+//  tile
+//
+material tile
+{
+	diffuse_map	"textures/tiles_WhiteAndGrey_01_diffuse.dds"
+	normal_map	"textures/tiles_WhiteAndGrey_01_normal.dds"
+	specular_intensity	0.9
+	shininess			60.0
+}
+
+material tile_colored
+{
+	diffuse_map	"textures/tile_colored.jpg"
+	normal_map	"textures/tile_colored.normals.jpg"
+	specular_intensity	0.7
+	shininess			60.0
+}
+
+material glossy_plastic
+{
+	diffuse_map	"textures/plain_color/gray.bmp"
+	normal_map	"textures/noise.normals.jpg"
+	specular_intensity	0.8
+	shininess			60.0
+}

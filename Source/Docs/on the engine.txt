@@ -1,0 +1,31 @@
+- Textures.h will contain noise functions for procedural texture generation,
+Geometry.h will contain function for procedural geometry generation (cubes, spheres, surfaces, etc)
+
+
+- Light model
+The half intensity distance and the attenuation exponent determine how the light attenuates over distance. This model is more powerful than the typical static-linear-quadratic attenuation model and requires also requires less parameters. The light is attenuated to half the strength reaching the distance set in the half intensity distance. The attenuation exponent indicates the power to which the distance of a fragment to the light source is raised. A value of 2 yields physically correct lighting while larger values produce dramatic lighting effects like light staying mostly constant over a given distance then falling off sharply. The cut off distance indicates a maximal distance the light travels before attenuated to zero strength. This is a hint for the graphic module especially for confined light sources which only illuminate objects in a small place. Each light has a position where the light starts from. Depending on the light type additional parameters are used.
+
+Point Light Source
+Point light sources emmit light in all directions equally. No additional parameters are used for this light type. Point lights are simple to use but often more expensive than a spot light. Use them therefore with care.
+Spot Light Source
+Spot lights work like point lights but in addition the light emission is limited to a cone. The cone is defined using the orientation quaternion. The best way to work with this parameter is to create a matrix where the Z Axis points along the center axis of the light cone and retrieving the quaternion thereof. In addition two angles and an exponent can be set. The angles define the inner and outer angle of the cone. The attenuation due to the cone is multiplied with the distance attenuation. Inside the inner angle no attenuation from the cone is contributed. Outside the outer angle light is attenuated to 0. For angles between the two cone angles an exponential decay is used with the spot exponent indicating the power to use. With these three parameters a large variety of spot lights can be modeled.
+Projector Light Source
+Projector lights work similar to spot lights with the difference that they are in the shape of a pyramid instead of a cone and that they use an image to multiply with the light color. Projectors can be seen as a beamer projecting an image on a world and are useful to produce all kinds of complex spot or projector lights. The image is projected along the Z Axis of matrix corresponding to the orientation with the X Axis corresponding to the image U direction and the Y Axis corresponding to the image V direction. Distance attenuation applies here like in the spot light case but no cone attenuation takes place. Apply the light shape based attenuation into the image instead.
+
+- texture files will have .tex extension (and normal maps - .bump).
+
+- use DevIL image loading library.
+
+- use spatial partitioning to eliminate redundant checks 'eye-in-light-volume'
+(fake GI works on cells, too).
+
+- use stencil optimization for a few big lights
+and batch up multiple small lights into a single draw call
+
+
+(Attenuation for point lights:
+
+//	{ 1, 0.1, 0.06 }	
+//	ATT = float3( 0.1f, 0.05f, 0.025f );
+//	ATT = float3( 0.07f, 0.03f, 0.010f );
+)

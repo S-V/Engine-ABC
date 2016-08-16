@@ -1,0 +1,53 @@
+
+//
+//  stone - is the famous stone wall material.
+//
+material stone
+{
+	diffuse_map	"textures/rockwall2.jpg"
+	normal_map	"textures/rockwall2.normals.png"
+}
+
+//
+//  gothic - is a gothic stone.
+//
+material gothic
+{
+	diffuse_map	"textures/gothic.png"
+	normal_map	"textures/gothic.normals.png"
+}
+
+//
+//  brick
+//
+material brick
+{
+	diffuse_map	"textures/stonewall.dds"
+	normal_map	"textures/stonewall.normals.dds"
+}
+
+//
+//  marble
+//
+material marble
+{
+	diffuse_map	"textures/dotted_marble.jpg"
+	
+	//normal_map	"textures/lichen1.normals.dds"
+	//specular_intensity	0.1
+	//shininess			20.0
+	
+	normal_map	"textures/stonewall.normals.dds"
+	
+	specular_intensity	0.2
+	shininess			50.0
+}
+
+material concrete
+{
+	diffuse_map	"textures/concrete.jpg"
+	normal_map	"textures/cellular.normals.png"
+
+	specular_intensity	0.3
+	shininess			50.0
+}

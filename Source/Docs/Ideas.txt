@@ -1,0 +1,760 @@
+* areas of post-processing: postFx can have a bounding volume, when the player enters the bounds,
+the corresponding postFx is activated... (much like ordinary visible entities)
+
+* on real-time CSG:
+ updating a single large buffer is very slow,
+ make an octree/KD-tree of BSPs, manage a pool of octree cells;
+ each cell contains a BSP tree and a small buffer,
+ cells that have no polys are added to the free list, etc.
+
+* portal surfaces should be able to have an arbitrary material attached
+(stained mirrors, etc)
+
+* on future compiler/IDE - multiple initialization of consts
+  error: cannot convert from 'const FLOAT' to 'FLOAT&'.
+	const FLOAT s, c;
+	mxMath::SinCos( angle, s, c );
+
+	// ...
+	
+	smart text comparison utils, e.g.:
+	in a derived class the programmer has forgotten to override pure virtual function,
+	so the derived class is an abstract class;
+	the compiler can compare function signatures and issue a warning
+	"cannot instantiate abstract class. Did you want to override ... member function?"
+
+* MiniSG:  Nodes should inherit RefCounted and keep a pointer to mxEntity.
+
+* there must always be a root scene,
+ other scenes will be children of the root scene.
+ scenes can be connected through portals (a scene can even be linked to itself).
+
+
+* can one use templates to automatically unroll loops (based on some index)
+
+
+--- instead of this
+
+/*	for (unsigned int i = 0; i < 3; i++){
+		if (dot(edgeNormals[i], pos) < edgeOffsets[i]){
+			return false;
+		}
+	}
+	return true;
+*/
+
+	// Tight unrolled code for better performance
+	return (edgeNormals[0].x * pos.x + edgeNormals[0].y * pos.y + edgeNormals[0].z * pos.z >= edgeOffsets[0] &&
+			edgeNormals[1].x * pos.x + edgeNormals[1].y * pos.y + edgeNormals[1].z * pos.z >= edgeOffsets[1] &&
+			edgeNormals[2].x * pos.x + edgeNormals[2].y * pos.y + edgeNormals[2].z * pos.z >= edgeOffsets[2]);
+
+
+--- we should write
+
+
+  Unroll< UINT, 0, 3 >( ...some_code... )
+
+
+
+
+* component container:
+
+ class ComponentList
+ {
+ 
+ // functions
+ 
+	FindComponentByType
+	AddComponent
+	RemoveComponent
+	
+	
+ private:
+    FixedArray< Component* >	fastCache;	// MRU cache, holds, say, 5 items.
+	LinkedList< Component >		slowList;
+ };
+
+
+
+
+
+* Light shapes
+
+// EProjectedLightShape ?
+enum ESpotLightShape
+{
+	Cylinder,
+	Cone,
+	Pyramid,
+};
+
+Vec2D bottomScale;
+
+
+
+
+* make a separate namespace math ?
+
+* mxTime can hold an inverse floating-point value ( 1 / fTime ).
+
+* rename Ptr::IsValid() to Ptr::IsOk()
+  or isOk();
+
+
+* my shader format:
+
+all shader main function are called as follows:
+  VS_Main
+  GS_Main
+  PS_Main
+
+
+* TODO: currently, only one render window can be used; make use of multiple view ports.
+
+* TODO: Look at Irrlicht, the user application should create the engine and get a ptr to it; no static members, no globals...
+
+
+*
+typedefs for templates are impossible to do in C++ !?
+(they can be wrapped in structs, etc.)
+
+or
+
+//
+//	Weak pointer
+//
+#define Ptr< classname >		TSmartPtr< classname, CheckingPolicy_EnforceNotNull, RefCountingPolicy_NoReferenceCounting >
+
+
+
+* render worlds know only about Drawables (or Visible objects, Renderables, etc.)
+  spatial databases should only know about mxSpatialProxy's.
+
+
+* Unreal Script is used for generating C++ code, but layout of members is usually far from optimal =>
+ => sort class members by size/usage frequency and place most frequently used or greatest in size members
+ into the beginning.
+
+
+
+* event receivers automaticaly link themselves to event listener lists thru the engine
+( in ctor, and unlink themselves in dtors ) ?
+
+
+* each resource should have a load priority (textures, mesh buffers, etc.)
+/*
+	enum EUsageInfo
+	{
+		Used_Rarely,
+		Used_Frequently,
+		Used_Very_Very_Often	= 0xFFFF,
+	};
+*/
+
+
+
+
+* rx - for renderer
+  px - for physics
+  mx - for engine and miscellaneous code (and for core game classes too)
+  dc - for description structures
+
+  T - for templates and typedef'ed types
+
+  use the C prefix for game code (e.g. CGrandCrystalWaterfall).
+
+
+* look at OGRE, they make "String  mName" the first data member => is this the most frequently used member ?
+they don't pay overly attention to performance issues (place bools arbitrary, nothing regarding alignment, etc.).
+
+
+* Gameplay:
+  make a ladder that the character can carry and use.
+
+
+
+
+*********** CODE FRAGMENT ******************************************************************
+
+	//--- Scene optimization -------------------------------------------------
+
+	enum EOptimizationLevel
+	{
+		O1,	O2,	O3,
+	};
+	// UNDONE:
+	enum EOptimizationOptions
+	{
+		// Analyze static objects (e.g. static geometry, lightning, materials, etc).
+		Opt_Combine_Static_Objects		= BIT( 0 ),
+		//Opt_Precompute_Static_Transforms
+
+		// Merge static entities having identical geometry to improve batching, spatial locality, etc.
+		Opt_Merge_Geometry				= BIT( 1 ),
+
+		// Precache visibility information (generate PVS, identify portals, etc).
+		Opt_Precompute_PVS				= BIT( 2 ),
+
+		// Identify entities having no effect on the scene
+		// (e.g. remove entities that will never be seen by the player).
+		Opt_Remove_Redundant_Entities	= BIT( 3 ),
+
+		// Minimize render state changes.
+		Opt_Minimize_State_Changes		= BIT( 4 ),
+		Opt_Build_Texture_Atlas			= BIT( 5 ),	// for minimizing texture changes
+
+		// Check if we can use instancing for rendering identical objects.
+		Opt_Detect_Instanced_Geometry	= BIT( 6 ),
+
+		// Select acceleration structures and algorithms best suited for this type of scene.
+		Opt_Spatialize_World			= BIT( 7 ),
+
+		// Generate levels of detail.
+		Opt_Generate_LOD				= BIT( 8 ),
+
+		// [aggressive] Use fake objects (try to use billboards, impostors, etc)
+		Opt_Use_Fake_Objects			= BIT( 9 ),
+
+		// [low-level, aggressive] Analyze geometry for rendering
+		// (e.g. use triangle strips or fans instead of triangle lists, optimize for minimizing overdraw, etc).
+		Opt_Optimize_Geometry			= BIT( 10 ),
+	};
+	enum EOptimizationSettings
+	{
+		Optimize_For_Speed,
+		Optimize_For_Memory,
+		Optimize_For_Quality,
+	};
+
+
+
+
+
+
+* Scene optimization(?): remove objects that are inside other closed solid undestroyable objects.
+
+* make a game where you can create ultra-high quality uber screenshots made with ray tracing.
+
+* on debugging graphics engines:
+  special debug mode in which you can create a virtual camera
+  and look at your original game player camera from another perspective,
+  see how view frustum looks like, objects that are currently visible, etc.
+
+* on new compiler/IDE:
+  automatic generation of dependencies between classes, modules, etc.
+  so that you can easily find dependencies, prerequisites, etc.
+
+* the end user should be able to see info about his/her computer (OS, CPU, GPU, memory, etc);
+invalid settings should automatically be disabled (shown in grey color and fixed).
+
+* use cone superfrustums for render entity caching and optimizing content streaming;
+testing against cones is fast.
+
+* a sequence of render instructions can be replaced by a sequence of low-level API calls.
+( use a peephole optimizer ? )
+
+* on the renderer:
+  replace all pointers to resources with 32-bit handles
+  and then pass those handles as parameters to the virtual machine ?
+
+* on physics:
+  body can be frozen if:
+  
+  if the sum of external forces is zero ( e.g. the global gravity is zero )
+    apply general heuristic for deactivating the body
+  else ( if there are external forces )
+    if the body has one or more contacts
+      apply general heuristic for deactivating the body
+
+* on new compiler/IDE:
+  built-in dimensions checking ( like in F# ), e.g. checking physical equations, m^s2, m^2, kg^m, etc.
+
+* TODO: super magnets, puzzles with magnets, etc.
+( recall 5 mm supermagnetic spheres, ferrofluids, etc. )
+
+* on the curr. physics engine:
+separate static and dynamic collision objects,
+maintain two contact caches:
+1) for dynamic vs static collision pairs;
+2) for dynamic vs dynamic collision pairs;
+
+Write two separate functions for handling these two cases.
+
+
+* On the physics engine :
+
+   It must be event-driven ( new physics engine paradigm - impulse-based event-driven ??? );
+   
+   in impulse-based engines, we need to save and restore states of physical bodies;
+   
+   keep an unsigned int - index to the states array - and avoid copying.
+   e.g.:
+   
+   void RigidBody::SetLinearVelocity( const Vec3D& newVelocity )
+   {
+     m_states[ m_current_state ].m_linearVelocity = newVelocity;
+   }
+
+  enum States
+  {
+  CURR_STATE,
+  SAVED_STATE,
+  NUM_STATES
+  };
+  
+  pxRigidBodyState   m_states[ NUM_STATES ];
+
+
+
+* in my code i have this:
+
+in Math.h:
+
+	class Math {
+	public:
+		static const FLOAT	HALF_PI;					// pi / 2
+	};
+
+in Math.cpp:
+
+	const FLOAT	mxMath::HALF_PI			= 0.5f * PI;
+
+
+
+in Physics.h file:
+
+const pxReal	MAX_ANGULAR_VELOCITY	= mxMath::HALF_PI;
+
+in Physics.cpp file:
+
+	printf( "%f", MAX_ANGULAR_VELOCITY );	// Prints 0.000000
+
+Why does it print zeros ?
+
+
+
+* pxTransform is a dual quaternion
+
+   or
+   
+  pxTransform consists of:
+  
+  position ( 3 floats ) + time ( 1 float )
+  orientation - quaternion ( 4 floats )
+  ___________________________________________
+  
+  total : 8 floats.
+
+
+* put as much information about the scene as you can, the engine will make some assumptions based on that info
+( how objects will be moving, etc. )
+
+
+* my compiled C4 language and a scripting language LeXiCoN for games
+will share the same intermediate representation optimizer.
+They will have different front-ends and back-ends.
+But in case of C4 the optimizer needs to know backend ( to perform more efficient optimizations ).
+
+
+
+* on my future language for programming games:
+ instead of a gigantic switch statement use a table,
+ event codes will be indices into that table;
+ of course, both event codes and the table will be generated from your game script;
+ 
+ there will be native events ( hardcoded, written in C++ code )
+ and events - members of classes in the game script.
+
+
+* synthesize music ( i think, electronic is quite easy, like S.Melax composes )
+based on game mood, player's state (health, etc.), etc.
+
+
+* create a character controller with arms, legs, etc., IK, physically-based animation, etc.
+
+
+
+* on my future compiler:
+
+  make it possible to return pointers to arrays:
+  
+  int[8]  Foo();
+
+
+* if we store collision shape ID as an integer ( in collsion object )
+then we can change it => employ LOD, e.g.
+
+switch from a complex model ( trimesh ) to simple ( sphere ), e.g.
+
+in collision dispatcher:
+
+CollisionAlgo  algo = GetAlgo( shape1->getType(), shape2->getAlgo() );
+
+The algo cast the shapes to their true types based on their types, e.g.
+
+shape->castTo( UINT type ) <= here we can employ LOD ( the shape will return another shape ).
+
+etc.
+
+
+
+* multiresolution collision shapes, or switchable shapes, for physics LOD.
+
+* create a new programming language for making games;
+  event-driven, types can have special event methods,
+  a global table of events will be generated ( 32-bit/64-bit unsigned event codes ),
+  fast run-time RTTI ( and static RTTI will be supported ), etc.
+
+
+
+* implement drag ( air/fluid resistance ), aerodynamics
+( e.g. a waving flag; a thin plate rotating on a pole by wind;
+ you can move objects with a vacuum cleaner, particle emitters, etc. )
+
+* once again, cheat for performance:
+
+  may use Monte Carlo approach ( random samples); grid approach - sample density;
+  ( e.g. approximate inertia tensors for complicated geometry,
+  take it from a simple geometry ( use LOD ),
+
+
+* On my future compiler/IDE :
+  compiler should analyze expressions involving floating-point vars
+  and ask the programmer for possible rearrangements ( e.g. quaternion multiplied by a quaternion,
+  rearrange the terms to reduce data dependancy, etc. ),
+  them remember these choices and apply to other floating-point expressions.
+  analyze the current hardware, select the fastest floating-point instructions
+  ( using conversions to ints, or SSE, or whatever ).
+
+
+* 1 ) setup scene;
+  use static scene manager ( which is used during scene initialization, in app code,
+  before entering the main loop, and that scene manager executes commands at once );
+  2 ) analyze and optimize scene ( scene graph )
+  3 ) generate custom machine code, including a dynamic scene manager,
+  which is event-driven; e.g. generate code for a renderer to avoid calling virtual functions
+  ( if it's known that we are using D3D render system, FMOD sound system, etc. ).
+  
+  4 ) Enter the main game loop.
+      Generate a new, better suited machine code when it's possible ( during level loading, etc. )
+      ( Look at Dynamo. )
+
+   Maybe, invent a new language with run-time generation extensions.
+
+
+
+* if you can't do that  then cheat;
+make simulations plausable, not physically real ( use LOD for physics, etc. ).
+
+
+* in optimization hints, in each scene node, there're flags about how the node will behave;
+e.g. if the node is static, or if it changes its position very rarely, or sometimes, or everyframe,
+and check the node's state, say, every 4 frames, or every 32 frames, etc.
+
+
+* Performance will be MUCH better if Scene was derived from PhysicsEnvironment, RenderWorld, etc.
+
+* graphics related classes start with the prefix "gx" ( graphics ),
+  physics - "px" ( physics ),
+  other - "mx" ( mix, miscellaneous ).
+
+* Engine has world;
+
+ world has many game environments;
+ 
+ environment is a collision world, a render world, a sound world, etc.
+
+
+* on portals:
+  some creatures crawling through portals ( e.g. spiders ),
+  or robots, machines, etc.
+  Rockets with effective smoke trails going through portals.
+
+* notes on English : my engine is a test bed where I am learning new techniques.
+
+* when generating C++ code for demo, we should select the most optimal bounding volumes for objects
+( OBB for thin long ones, spheres for rotating, etc. )
+
+* Blender game engine supports stereo rendering.
+
+* definitely, i should write a demo-making framework, at least, for making static scenes ( screensavers ).
+That framework will allow me to test scene graph optimizer.
+The framework will translate scene graphs into raw, low-level API calls.
+
+* move a scene graph optimizer into the camera class.
+* precache visible sets in cameras / portals.
+* use idle time ( when the user/player is away ) to optimize the scene, to improve performance.
+* Object::GenerateGUID
+
+* make a whirlpool, create some beautiful water.
+  use liquids through portals.
+
+* each object has
+  static const char* classname;
+  virtual const char* getClassName() const { ... }
+
+* GetVisiblePrimitives()
+  GetCollidingPrimitives()
+
+* game entities with RTTI will be generated from script,
+  core classes ( view, camera, worlds ) are written in C++ directly.
+  
+* script system which can:
+  interpret your source code directly;
+  compile it into bytecode and optimize, and execute the resulting bytecode;
+  compile it into native ( machine ) code ( fast JIT compilation ) and execute it efficiently.
+
+* the same database for graphics, physics, sound, etc.;
+  on top of it efficient data structures to retrieve database entries
+  by their name, spacial location, etc.
+  We can store entity's ID ( recall relational databases )
+  and we can even use that ID for RTTI.
+  two numbers - two integers - one for RTTI ( typename ), the other - for instance of that class.
+  and it will probably store other numbers ( collision group used by physics, etc. )
+  
+  If it's impossible in C++ to implement RTTI system based on IDs, then use an automated CodeGen
+  ( recall Unreal Script ) and generate C++ classes from scripts.
+  
+  such things in code as:
+  
+  if ( RenderEntity * pRenderable = pEntity->Is( "Renderable" ) )
+  
+  will be translated into ID checks ( no costly string comparison ).
+
+* compiler should recognize redundant math calculations written by a poor programmer,
+optimize them in place;
+chain transformations, etc.
+
+* write some template C++ code ( with render system, entities, etc. )
+and invent special comments, for example:
+
+//@ cost: 34, probability: 0.12.
+void mxRenderable::CalculateMatrices()
+{
+	// calculate world matrix from position, rotation, scale.
+	// ...
+}
+
+It would be good if the cost and probability of calling functions
+are measured and written automatically.
+
+* Unreal Engine already has (?) portals ( DSG - dynamic scene graph technolodgy, allows non-eucledian spaces ).
+
+* should give warnings/errors if several entities ( esp. portals ) occupy the same space;
+  should analyze the scene graph and identify loops, impossible things ( esp. with portals ), etc.
+
+* generating C++ source files from a scene graph ( automated CodeGen );
+  can generate for different machines ( recall crosscompilers ),
+  we can even generate entire games for old machines ( DirectX 7, 8, etc. );
+  use high-level optimizer to remove useless statements from generated shader or even C++ code;
+  maybe, in C++ code, all variables would have to be global.
+  When generating code, premark areas with algorithms which will be selected at run-time,
+  ask a human about choice, etc.
+  
+  ? D3DXCreateMatrixStack ?
+
+
+* A vantage point tree, or vp-tree is a BSP tree that segregates data in a metric space by choosing a position in the space (the "vantage point") and dividing the data points into two partitions: those that are nearer to the vantage point than a threshold, and those that are not. By repeatedly applying this procedure to partition the data into smaller and smaller sets, a tree data structure is created where neighbors in the tree are likely to be neighbors in the space.[1]
+This iterative partitioning process is similar to that of a kd-tree, but uses circular (or spherical, hyperspherical, etc) rather than rectilinear partitions. In 2D Euclidean space, this can be visualized as a series of circles segregating the data.
+The vp-tree is particularly useful in dividing data in a non-standard metric space into a BSP tree.
+
+
+* Idea:
+  a new 'friend' keyword allows access to all classes derived from the specified class.
+  
+* Idea: Portal sphere:
+
+  Sphere-portal with physics attached - the sphere rolls and teleports all entities it meets.
+  ( if the encountered entity is too big the sphere explodes causing massive damage. )
+
+* Portal
+	  StaticPortal
+	  DynamicPortal (MovablePortal)
+
+  Rectangular
+  Spherical
+  MeshShape
+  
+  RTT
+  StencilBuffer
+
+
+* use a single geometric database; use 'physics portals' to speed up collision detection
+ ( objects that are inside the cylinder/room/whatever cannot collide with other objects, etc. );
+ switch collision shapes ( physics LOD, to reduce system stress )
+
+* generate unique decals (based on damage info, surface material, etc)
+* re-create the portal technolodgy of the guy "nullsquared"
+
+* create a software image from a byte array, use procedural textures : 
+
+class IVideoDriver {
+public:
+//...
+	virtual IImage* createImageFromData(ECOLOR_FORMAT format,
+			const core::dimension2d<s32>& size, void *data,
+			bool ownForeignMemory=false,
+			bool deleteMemory = true) = 0;
+//...
+};
+
+  then use that image as a splash screen upon starting up.			
+
+* separate mxCharacterController and mxCharacterControllerAnimatorFPS,
+  create different controllers (animators) : normal, noclip, etc.
+* the player can jump off any surfaces (not only horizontal ones, floors, etc).
+
+* each entity has a pointer to Environment and the pointer is passed in ctor;
+  that entity is automaticly inserted into corresponding Environment.
+* rename DROP() to SAFE_DROP().
+  create SAFE_REMOVE().
+* use ESDF instead of WASD for movement; jump, crouch and shrink to move through hard areas.
+
+* Game editor with realistic materials: physical properties can be assigned to fluids, solids, etc.
+  level is not just polygons.
+
+*!!! Multiple environments with collision worlds, objects from different environments cannot collide with each other, etc.
+  Environments that are not seen by the player can be suspended ( not ticked ) for saving CPU time,
+  thus, environments are sort of portals.
+  Objects, crossing environments boundaries, will be re-inserted.
+  Environments will form a kind of a scene graph.
+  GWorld->GetRootEnvironment().
+
+* (on the future IDE and compiler) place restriction: some classes cannot be derived from certain classes.
+
+* (on the future IDE and compiler) on right-click an option in a menu - "Go To Instantiation" ( alongside "Go To Definition", etc. )
+
+* btCollisionShape::processAllTriangles
+ shape can cache results of prev. queries and remember aabbs, etc. and then use it.
+
+* player mass and strength can change ( how much food he has eaten, ammo and weapons he carries, etc. )
+
+* keep it simple, easy to use ( look at Irrlicht ),
+ give similar names to methods ( avoid using operator 'new' for creating entities,
+ use mxScene::AddHumanPlayerEntity(), etc.
+
+* create advanced material system ( sound data base, generating sounds from impact, etc. )
+standard materials ( concrete, steel, wood, etc. ) for sounds, DMM, etc.
+
+* organize voxels in a BSP/BVH/etc. acceleration structure available.
+
+* clustering of random points in mxDecalSystem;
+ decals on edges and very dense clusters should be turned into CSG models and subtracted from the underlying geometry.
+
+
+* For detecting floating chunks of stuff use half-edge and determine volume of BSP cells
+(these chunks have limited volume, BSP divide space into convex subspaces by planes,
+if a cell has finite volume == linear programming feasibility (planes from ancestor partitions),
+also use linear programming for improving tree merging).
+We can establish a mass threshold (all bodies > certain mass are considered static).
+( Right from the book: "CSG operations are defined on surfaces that bound a volume of finite extent". )
+
+
+* Mesh smoothing for simulating metal melting, view dependent LoD.
+GeoMod works on coarse meshes, which are smoothed (possibly, fully on GPU)
+
+* dynamic self-balancing decision tree for algorithm selection
+* Mod for Irrlicht called "GeoMod"
+* Lightning scene node for Irrlicht
+* Stencil buffers in OpenGL ( OpenCSG ) "E:\project\gamedev\sources\geometry\_null\OpenCSG
+
+
+//------------------------------------------------------------------
+
+Compilers should be smart to give such warnings as "Don't use MemSet() in constructors in this class because you are overwriting virtual functions table"
+
+Compilers should insert "delete"s in source code themselves ( automated codegen ).
+
+"
+Besides, the real advantage of GC is not speed. It is reliability of 
+code, ease of programming, and separation of disparate issues (here, 
+memory management and program logic).
+"
+
+
+//------------------------------------------------------------------
+//
+// WorldManager
+// TODO: intelligent world manager with dynamic algorithm selection.
+// This manager should be able to optimize the scene for quickly responding to sequences of geometric queries.
+//
+//	Look at OpenGL performer.
+//
+//
+class WorldManager {
+public:
+			WorldManager();
+			~WorldManager();
+
+	//--- Interface should be simple. Let the engine decide which algorithms to use.
+	// The user of the engine won't need to know about, say, spatial partitioning algorithms,
+	// needn't specify exact types of scene nodes to create, adjust and experiment with settings,
+	// striving to achieve optimal performance, etc.
+
+private:
+	// For example, the engine can exploit parallelism, or fast and memory hungry algorithms, or anything else,
+	// based on the machine characteristics.
+	void	Pre_AnalyzeHardwareCapabilities();
+
+	void	Pre_AnalyzeScene();
+	/* Ideally, scenes shouldn't require heavy preprocessing.
+	   Internal acceleration structures should be refitted at run-time,
+	   using information about how they are used.
+	*/
+
+	void	Pre_MarkAreasWithAlgorithms();
+#ifdef DEVELOPER_MODE
+	// The engine may use neural nets trained by experts.
+	void	Pre_AskHumanAboutMyChoice();
+	void	Pre_AskHumanToSelectAlgorithms();
+#endif
+	void	SaveStatistics();
+
+	//--- Dynamic algorithm selection -----------------------------------------------
+
+	void	AnalyzeCurrentScene();
+
+	void	SelectAlgosForRendering();
+
+	/* use deferred, self-organizing, self-optimizing data structures,
+	   record usage history and refit them.
+	   Real-time portal generation ( probably, without BSP (image recognition, neural nets), selecting occluders,
+	   intelligent grouping of display objects ( for collision detection and culling ), selecting different bounding volumes,
+	   culling animations, shadows, special effects, etc.
+	*/
+
+	void	SelectAlgosForHandlingCollisions();
+	/* use probabilistic, non-deterministic algorithms if too many small polygons,
+	   approximations( physics LOD ) when the time left for physics is short.
+	*/
+
+	/* the engine should learn and experiment, recognize patterns.
+	*/
+
+	void	SelectBoundingVolumes();
+	void	RefitAccelerationStructures();
+
+	void	Schedule();
+	void	Predict();
+
+	void	Remember_achieved_FPS_and_Algorithms_used();
+	void	UpdateStatistics();
+
+	void	ReconsiderCurrentChoice();
+
+	// ...
+
+#ifdef DEVELOPER_MODE
+	void	AskHumanToClassifyTheScene();	// indoors/outdoors, closed/open, static/dynamic, structured/unstructured, etc.
+	void	AskHumanWhichTechniquesArePreferred();
+#endif
+
+/* The engine should be able to dynamicly switch between normal and voxel geometry
+*/
+
+/*
+private:
+	PriorityQueue< Task >	m_pendingTasks;
+	List< Task >			m_scheduledTasks;
+*/
+};

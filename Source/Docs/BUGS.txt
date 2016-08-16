@@ -1,0 +1,50 @@
+- Portal::LookAt()
+
+- 'Sharpen' post-processing effect doesn't work correctly
+  GBlur
+
+- 'oversaturation' artefacts - this probably has to do with normals
+
+- FIXED: bug in ResourceLoader (multiple mesh buffers)
+
+- default material should be set to all models, if none has been specified
+
+
+2010.03.27 - fixed the bug in original Id Software's code 
+
+  idMat4::idMat4( const idMat3 &rotation, const idVec3 &translation ) {
+  
+
+- depth is probably computed incorrectly in the shader.
+
+//==================================================================================================
+
+incorrect note in Microsoft DirectX :
+
+in file D3D10Effect.h :
+
+typedef struct _D3D10_PASS_DESC
+{
+    LPCSTR Name;                    // Name of this pass (NULL if not anonymous)   
+    
+/* ... */
+
+
+This should be "(NULL if anonymous)", right?
+
+- change G_GetSystem().GetCurrentTimeMs(); to virtual!!!
+
+//==================================================================================================
+
+// Also see MX_TARGET_DRIVER in Framework.h
+MX_TARGET_DRIVER has no effect.
+
+!!! check projection matrix, see DirectX SDK (August 2009), "The Direct3D Transformation Pipeline" !!!
+(fog table works incorrectly)
+
+//==================================================================================================
+
+FIXED:
+* Box - Plane collision algorithm, uninitialized fields in the contact structure.
+
+//==================================================================================================

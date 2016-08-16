@@ -1,0 +1,144 @@
+// A very simple material with green color.
+
+material Material_Green {
+
+	technique
+	{
+		pass
+		{
+			Lighting         = true;  // enable fixed-function dynamic lighting
+			normalize_normals = true; // enable automatic renormalization of vertex normals
+			
+			ambient = 0.1, 0.2, 0.1, 1.0;	// in RGBA format
+			diffuse = Green;	// yes, built-in names for basic colors
+			emissive = Black;  // material doesn't emit any light
+
+			// make it shiny
+			enable_specular   = true;
+			specular = 0.01, 0.0, 0.0, 1.0;
+			power    = 0.001;
+
+		}//End Pass
+	}//End Technique
+}//End Material
+
+//
+//	Material_Blue
+//
+material Material_Blue {
+
+	technique
+	{
+		pass
+		{
+			Lighting         = true;
+			normalize_normals = true;
+			
+			ambient = 0.1, 0.2, 0.1, 1.0;
+			diffuse = Blue;
+			emissive = Black;
+
+			enable_specular   = true;
+			specular = 0.01, 0.0, 0.0, 1.0;
+			power    = 0.001;
+
+		}//End Pass
+	}
+
+}//End Material
+
+
+//
+// A simple material with two textures: a masonry brick texture and a detail map.
+//
+material Brick {
+
+	technique
+	{
+		pass
+		{
+			lighting = true;
+			normalize_normals = true;
+			shading = Flat;
+			fill_mode = Solid;
+
+			ambient = white;
+			diffuse = white;
+
+			// settings for the texture unit 0
+			texture_unit
+			{
+				texture = "masonry_brick.jpg";
+				scale = 2.0, 2.0;	// increase the number of bricks
+				Tex_Coord_Set = 0;
+				filtering = Bilinear;
+				Color_Op   = Modulate;
+				Color_Arg1 = Texture;
+				Color_Arg2 = Diffuse;
+			}
+
+			// detail texture is bound to texture unit 1
+			texture_unit
+			{
+				texture = "noise_texture.png";
+				Tex_Coord_Set = 1;
+
+				Color_Op   = Modulate;
+				Color_Arg1 = Texture;
+				Color_Arg2 = Current;
+				
+				// Set detailed filtering options.
+				MinFilter = linear;
+				MagFilter = linear;
+				MipFilter = point;
+				
+				scale = 50, 50;	// increase resolution of detail map
+			}
+
+		}//End Pass
+	}//End Technique
+}//End Material
+
+
+//
+// ground
+//
+material ground
+{
+	technique
+	{
+		pass
+		{
+			lighting         = true;
+			normalize_normals = true;
+			shading = Flat;
+
+			ambient = white;
+			diffuse = 0.2, 0.2, 0.2, 0.5;
+
+			texture_unit
+			{
+				texture = "concrete.jpg";
+				scale = 2.0, 2.0;
+				Tex_Coord_Set = 0;
+				filtering = Bilinear;
+				Color_Op   = Modulate;
+				Color_Arg1 = Texture;
+				Color_Arg2 = Diffuse;
+			}
+
+			texture_unit
+			{
+				texture = "detailmap.jpg";
+				Tex_Coord_Set = 1;
+				filtering = Bilinear;
+				Color_Op   = AddSigned;
+				Color_Arg1 = Texture;
+				Color_Arg2 = Current;
+				
+				scale = 80, 80;
+			}
+
+		}//End Pass
+	}//End Technique
+}//End Material

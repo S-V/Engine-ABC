@@ -1,0 +1,48 @@
+class __ {
+public:
+			__();
+			~__();
+
+	void	Initialize();
+	void	Shutdown();
+};
+	
+/*================================
+		__
+================================*/
+
+__::__()
+{}
+
+__::~__()
+{}
+
+void __::Initialize()
+{
+}
+
+void __::Initialize()
+{
+}
+
+
+
+/*================================
+		D3D10Shader
+================================*/
+
+D3D10Shader::D3D10Shader()
+{}
+
+D3D10Shader::~D3D10Shader()
+{}
+
+void D3D10Shader::Load( const char* fileName )
+{
+	D3D10Shader::Load( fileName );
+}
+
+void D3D10Shader::Unload()
+{
+	D3D10Shader::Unload();
+}

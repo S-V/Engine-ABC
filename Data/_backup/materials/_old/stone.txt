@@ -1,0 +1,77 @@
+//
+//  stone
+//
+material stone
+{
+	technique FullLOD
+	{
+		pass
+		{
+			lighting = true;
+			normalize_normals = true;
+			shading = Flat;
+			fill_mode = Solid;
+			
+			cull_mode = CCW;
+			depth_test = true;
+			depth_write = true;
+
+			ambient = white;
+			diffuse = white;
+			
+		//	enable_specular   = true;
+		//	specular = 0.01, 0.0, 0.0, 1.0;
+		//	power    = 0.001;
+			
+			texture_unit
+			{
+				texture = "rockwall.jpg";
+				Tex_Coord_Set = 0;	// we use the first texture coordinate set for the main texture
+				Filtering = Trilinear;
+				Color_Op   = Modulate;
+				Color_Arg1 = Texture;
+				Color_Arg2 = Diffuse;
+				scale = 3, 3;
+			}
+
+			texture_unit
+			{
+				texture = "detailmap.jpg";
+				Tex_Coord_Set = 1;	// second texture coordinates for the detail texture
+				Filtering = Bilinear;
+				Color_Op   = AddSigned;
+				Color_Arg1 = Texture;
+				Color_Arg2 = Current;
+				scale = 10, 10;
+			}
+			
+		}//end Pass
+	}//end Technique
+}//end Material
+
+//
+//  limestone
+//
+material limestone
+{
+	technique FullLOD
+	{
+		pass
+		{
+			lighting = true;
+			normalize_normals = true;
+			shading = Gouraud;
+
+			ambient = white;
+			diffuse = white;
+
+			texture_unit
+			{
+				texture = "limestone.jpg";
+				Tex_Coord_Set = 0;
+				scale = 3, 3;
+			}
+	
+		}//end Pass
+	}//end Technique
+}//end Material

@@ -1,0 +1,135 @@
+//
+//  skybox_starfield
+//
+
+material Skybox_Starfield_Left
+{
+	technique
+	{
+		pass
+		{
+			lighting = false;
+			fill_mode = Solid;
+
+			cull_mode = None;
+			depth_test = false;
+			depth_write = false;
+			
+			texture_unit
+			{
+				texture = "left.png";
+				Filtering = Anisotropic;
+			}
+		}
+	}
+}
+
+material Skybox_Starfield_Front
+{
+	technique
+	{
+		pass
+		{
+			lighting = false;
+			fill_mode = Solid;
+
+			cull_mode = None;
+			depth_test = false;
+			depth_write = false;
+			
+			texture_unit
+			{
+				texture = "front.png";
+				Filtering = Anisotropic;
+			}
+		}
+	}
+}
+
+material Skybox_Starfield_Right
+{
+	technique
+	{
+		pass
+		{
+			lighting = false;
+			fill_mode = Solid;
+
+			cull_mode = None;
+			depth_test = false;
+			depth_write = false;
+			
+			texture_unit
+			{
+				texture = "right.png";
+				Filtering = Anisotropic;
+			}
+		}
+	}
+}
+
+material Skybox_Starfield_Back
+{
+	technique
+	{
+		pass
+		{
+			lighting = false;
+			fill_mode = Solid;
+
+			cull_mode = None;
+			depth_test = false;
+			depth_write = false;
+			
+			texture_unit
+			{
+				texture = "back.png";
+				Filtering = Anisotropic;
+			}
+		}
+	}
+}	
+
+material Skybox_Starfield_Top
+{
+	technique
+	{
+		pass
+		{
+			lighting = false;
+			fill_mode = Solid;
+
+			cull_mode = None;
+			depth_test = false;
+			depth_write = false;
+			
+			texture_unit
+			{
+				texture = "up.png";
+				Filtering = Anisotropic;
+			}
+		}
+	}
+}	
+
+material Skybox_Starfield_Bottom
+{
+	technique
+	{
+		pass
+		{
+			lighting = false;
+			fill_mode = Solid;
+
+			cull_mode = None;
+			depth_test = false;
+			depth_write = false;
+			
+			texture_unit
+			{
+				texture = "down.png";
+				Filtering = Anisotropic;
+			}
+		}
+	}
+}	
