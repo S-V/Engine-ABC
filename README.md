@@ -5,8 +5,8 @@ My first graphics engine, developed for B.S. (2010): naive deferred shading, D3D
 
 ## CSG subtraction:
 
-!(https://github.com/S-V/Engine-ABC/blob/master/History/Screenshots/csg_subtract.jpg)
+![csg sub](https://github.com/S-V/Engine-ABC/blob/master/History/Screenshots/csg_subtract.jpg)
 
 ## CSG union:
 
-!(https://github.com/S-V/Engine-ABC/blob/master/History/Screenshots/csg_union_4.jpg)
+![csg add](https://github.com/S-V/Engine-ABC/blob/master/History/Screenshots/csg_union_4.jpg)
